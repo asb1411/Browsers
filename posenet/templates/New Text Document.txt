@@ -1,7 +1,0 @@
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs/dist/tf.min.js">
-          import * as tf
-      </script>
-      <!-- Load Posenet -->
-      <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet">
-          import * as posenet
-      </script>
