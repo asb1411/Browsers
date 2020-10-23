@@ -75,6 +75,13 @@ video.addEventListener('loadeddata', function() {
         ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
         drawKeypoints(pose["keypoints"], minPartConfidence, ctx);
         drawSkeleton(pose["keypoints"], minPartConfidence, ctx);
+	if(checkCircle(pose["keypoints"],coord)===false){
+            let coordd=coord;
+            coord=drawCircle(ctx,coordd);
+        }
+        else if(checkCircle(pose["keypoints"],coord)===true){
+            coord=drawCircle(ctx);
+        }
     }
 
 
