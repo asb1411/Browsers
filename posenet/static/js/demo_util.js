@@ -17,6 +17,7 @@ import * as posenet from '@tensorflow-models/posenet';
 import * as tf from '@tensorflow/tfjs';*/
 
 const color = 'aqua';
+const color2 = 'red';
 const boundingBoxColor = 'red';
 const lineWidth = 2;
 
@@ -73,6 +74,75 @@ function isiOS() {
 function toTuple({y, x}) {
   return [y, x];
 }
+
+function drawCircle(ctx, coordd=[0,0], r=40) {
+  ctx.beginPath();
+  if(coordd[0]!==0 || coordd[1]!==0) {
+      let x=coordd[0];
+      let y=coordd[1];
+      ctx.arc(x, y, r, 0, 2 * Math.PI);
+      ctx.fillStyle = color2;
+      ctx.fill();
+      return [x,y];
+  }
+  let x=Math.floor((Math.random() * 750) + 20);
+  let y=Math.floor((Math.random() * 300) + 20);
+  console.log(x,y);
+  ctx.arc(x, y, r, 0, 2 * Math.PI);
+  ctx.fillStyle = color2;
+  ctx.fill();
+  return [x,y];
+}
+
+
+
+
+function checkCircle(keypoints, coord) {
+    let x=0;
+    let y=0;
+    if(keypoints[9]){
+        x=keypoints[9].position.x;
+        y=keypoints[9].position.y;
+        if(dist(x,y,coord[0],coord[1])<=40) return true;
+    }
+    if(keypoints[10]){
+        x=keypoints[10].position.x;
+        y=keypoints[10].position.y;
+        if(dist(x,y,coord[0],coord[1])<=40) return true;
+    }
+    return false;
+}
+
+
+
+
+
+function dist(a,b,c,d) {
+    return Math.sqrt(Math.abs(Math.pow((c-a),2)+Math.pow((b-d),2)));
+}
+
+
+function angle(keypoints, a, b, c) {
+    var keypoint = keypoints[a];
+    let {y1, x1} = keypoint.position;
+    keypoint = keypoints[b];
+    let {y2, x2} = keypoint.position;
+    keypoint = keypoints[c];
+    let {y3, x3} = keypoint.position;
+    let xx=0;
+    if(y1===y2) xx=Infinity;
+    else xx=((x1-x2)/(y1-y2));
+    let yy=0;
+    if(y3===y2) yy=Infinity;
+    else yy=((x3-x2)/(y3-y2));
+    let zz=Math.atan(xx)*180/(Math.PI);
+    if(zz<=0) zz=180+zz;
+    let zzz=Math.atan(yy)*180/(Math.PI);
+    if(zzz<=0) zzz=180+zzz;
+    let ans=Math.abs(zz-zzz);
+}
+
+
 
  function drawPoint(ctx, y, x, r, color) {
   ctx.beginPath();
