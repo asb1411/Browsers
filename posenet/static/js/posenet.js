@@ -98,7 +98,7 @@ video.addEventListener('loadeddata', function() {
                 coord = drawCircle(ctx);
             }
             if(checkCircle(pose["keypoints"],[exitButtonX,exitButtonY],[9,10])===false){
-                drawCircle(ctx, [startButtonX,startButtonY], circleRadius, 'green', "EXIT");
+                drawCircle(ctx, [exitButtonX,exitButtonY], circleRadius, 'green', "EXIT");
             }
             else if(checkCircle(pose["keypoints"],[exitButtonX,exitButtonY],[9,10])===true){
                 startEnable = true;
