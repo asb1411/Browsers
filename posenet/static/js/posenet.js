@@ -1,8 +1,13 @@
 const videoWidth = 800;
 const videoHeight = 600;
+const startButtonX = 40;
+const startButtonY = 450;
+const circleRadius = 40;
+const exitButtonX = videoWidth-40;
+const exitButtonY = videoHeight-150;
+let coord = [0,0];
+const minPartConfidence = 0.5;
 var net;
-var minPartConfidence = 0.5;
-
 /**
  * Loads a the camera to be used in the demo
  *
@@ -25,6 +30,7 @@ var ctx = canvas.getContext('2d');
 canvas.width = videoWidth;
 canvas.height = videoHeight;
 var i=0;
+var startEnable = true;
 
 
 // Initializing the Net
@@ -75,13 +81,30 @@ video.addEventListener('loadeddata', function() {
         ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
         drawKeypoints(pose["keypoints"], minPartConfidence, ctx);
         drawSkeleton(pose["keypoints"], minPartConfidence, ctx);
-	if(checkCircle(pose["keypoints"],coord)===false){
-            let coordd=coord;
-            coord=drawCircle(ctx,coordd);
+        if(startEnable) {
+            if(checkCircle(pose["keypoints"],[startButtonX,startButtonY],[9,10])===false){
+                drawCircle(ctx, [startButtonX,startButtonY], circleRadius, 'green', "START");
+            }
+            else if(checkCircle(pose["keypoints"],[startButtonX,startButtonY],[9,10])===true){
+                startEnable = false;
+                coord = drawCircle(ctx);
+            }
         }
-        else if(checkCircle(pose["keypoints"],coord)===true){
-            coord=drawCircle(ctx);
+        if(!startEnable) {
+            if(checkCircle(pose["keypoints"],coord,[9,10])===false){
+                drawCircle(ctx, coord, circleRadius);
+            }
+            else if(checkCircle(pose["keypoints"],coord,[9,10])===true){
+                coord = drawCircle(ctx);
+            }
+            if(checkCircle(pose["keypoints"],[exitButtonX,exitButtonY],[9,10])===false){
+                drawCircle(ctx, [startButtonX,startButtonY], circleRadius, 'green', "EXIT");
+            }
+            else if(checkCircle(pose["keypoints"],[exitButtonX,exitButtonY],[9,10])===true){
+                startEnable = true;
+            }
         }
+        //angle(pose["keypoints"], 1,2,3);
     }
 
 
