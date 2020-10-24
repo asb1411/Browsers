@@ -75,22 +75,40 @@ function toTuple({y, x}) {
   return [y, x];
 }
 
-function drawCircle(ctx, coordd=[0,0], r=40) {
+function drawCircle(ctx, coordd=[0,0], r=40, color='red', filltext) {
   ctx.beginPath();
   if(coordd[0]!==0 || coordd[1]!==0) {
       let x=coordd[0];
       let y=coordd[1];
       ctx.arc(x, y, r, 0, 2 * Math.PI);
-      ctx.fillStyle = color2;
+      ctx.fillStyle = color;
       ctx.fill();
+      if(filltext) {
+        ctx.beginPath();
+        ctx.font = ((r/2)|0) + 'px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'black';
+        ctx.fillText(filltext,x,y);
+        ctx.fill();
+      }
       return [x,y];
   }
   let x=Math.floor((Math.random() * 750) + 20);
   let y=Math.floor((Math.random() * 300) + 20);
   console.log(x,y);
   ctx.arc(x, y, r, 0, 2 * Math.PI);
-  ctx.fillStyle = color2;
+  ctx.fillStyle = color;
   ctx.fill();
+  if(filltext) {
+    ctx.beginPath();
+    ctx.font = ((r/2)|0) + 'px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'black';
+    ctx.fillText(filltext,x,y);
+    ctx.fill();
+  }
   return [x,y];
 }
 
