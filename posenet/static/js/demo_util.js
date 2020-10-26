@@ -16,13 +16,16 @@
 import * as posenet from '@tensorflow-models/posenet';
 import * as tf from '@tensorflow/tfjs';*/
 
-const color = 'aqua';
+//const color = 'aqua';
 const color2 = 'red';
 const boundingBoxColor = 'red';
-const lineWidth = 2;
+const lineWidth = 10;
+const xlim = [0.0, 1.0];
+const ylim = [0.0, 0.5];
+const radiusOffset = 0.005;
 
- const tryResNetButtonName = 'tryResNetButton';
- const tryResNetButtonText = '[New] Try ResNet50';
+const tryResNetButtonName = 'tryResNetButton';
+const tryResNetButtonText = '[New] Try ResNet50';
 const tryResNetButtonTextCss = 'width:100%;text-decoration:underline;';
 const tryResNetButtonBackgroundCss = 'background:#e61d5f;';
 
@@ -34,7 +37,7 @@ function isiOS() {
   return /iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
- function isMobile() {
+function isMobile() {
   return isAndroid() || isiOS();
 }
 
@@ -75,38 +78,40 @@ function toTuple({y, x}) {
   return [y, x];
 }
 
-function drawCircle(ctx, coordd=[0,0], r=40, color='red', filltext) {
+
+
+function drawCircle(ctx, coordd=[0,0], r=0.05, color='red', filltext) {
   ctx.beginPath();
   if(coordd[0]!==0 || coordd[1]!==0) {
       let x=coordd[0];
       let y=coordd[1];
-      ctx.arc(x, y, r, 0, 2 * Math.PI);
+      ctx.arc(Math.floor(x*videoWidth), Math.floor(y*videoHeight), Math.floor(r*videoWidth), 0, 2 * Math.PI);
       ctx.fillStyle = color;
       ctx.fill();
       if(filltext) {
         ctx.beginPath();
-        ctx.font = ((r/2)|0) + 'px Arial';
+        ctx.font = ((r*videoWidth/2)|0) + 'px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = 'black';
-        ctx.fillText(filltext,x,y);
+        ctx.fillText(filltext,Math.floor(x*videoWidth),Math.floor(y*videoHeight));
         ctx.fill();
       }
       return [x,y];
   }
-  let x=Math.floor((Math.random() * 750) + 20);
-  let y=Math.floor((Math.random() * 300) + 20);
+  let x=(((Math.random() * (xlim[1]-xlim[0])) + xlim[0]));
+  let y=(((Math.random() * (ylim[1]-ylim[0])) + ylim[0]));
   console.log(x,y);
-  ctx.arc(x, y, r, 0, 2 * Math.PI);
+  ctx.arc(Math.floor(x*videoWidth), Math.floor(y*videoHeight), Math.floor(r*videoWidth), 0, 2 * Math.PI);
   ctx.fillStyle = color;
   ctx.fill();
   if(filltext) {
     ctx.beginPath();
-    ctx.font = ((r/2)|0) + 'px Arial';
+    ctx.font = ((r*videoWidth/2)|0) + 'px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = 'black';
-    ctx.fillText(filltext,x,y);
+    ctx.fillText(filltext,Math.floor(x*videoWidth),Math.floor(y*videoHeight));
     ctx.fill();
   }
   return [x,y];
@@ -115,18 +120,17 @@ function drawCircle(ctx, coordd=[0,0], r=40, color='red', filltext) {
 
 
 
-function checkCircle(keypoints, coord) {
+function checkCircle(keypoints, coord, list) {
     let x=0;
     let y=0;
-    if(keypoints[9]){
-        x=keypoints[9].position.x;
-        y=keypoints[9].position.y;
-        if(dist(x,y,coord[0],coord[1])<=40) return true;
-    }
-    if(keypoints[10]){
-        x=keypoints[10].position.x;
-        y=keypoints[10].position.y;
-        if(dist(x,y,coord[0],coord[1])<=40) return true;
+    for(var i=0;i<list.length;i++){
+        if(keypoints[list[i]]){
+            x=keypoints[list[i]].position.x;
+            y=keypoints[list[i]].position.y;
+            x=x/videoWidth;
+            y=y/videoHeight;
+            if(dist(x,y,coord[0],coord[1])<=((circleRadius+radiusOffset)*videoWidth)) return true;
+        }
     }
     return false;
 }
@@ -136,29 +140,31 @@ function checkCircle(keypoints, coord) {
 
 
 function dist(a,b,c,d) {
+    a=a*videoWidth;
+    c=c*videoWidth;
+    b=b*videoHeight;
+    d=d*videoHeight;
     return Math.sqrt(Math.abs(Math.pow((c-a),2)+Math.pow((b-d),2)));
 }
 
 
-function angle(keypoints, a, b, c) {
-    var keypoint = keypoints[a];
-    let {y1, x1} = keypoint.position;
-    keypoint = keypoints[b];
-    let {y2, x2} = keypoint.position;
-    keypoint = keypoints[c];
-    let {y3, x3} = keypoint.position;
-    let xx=0;
-    if(y1===y2) xx=Infinity;
-    else xx=((x1-x2)/(y1-y2));
-    let yy=0;
-    if(y3===y2) yy=Infinity;
-    else yy=((x3-x2)/(y3-y2));
-    let zz=Math.atan(xx)*180/(Math.PI);
-    if(zz<=0) zz=180+zz;
-    let zzz=Math.atan(yy)*180/(Math.PI);
-    if(zzz<=0) zzz=180+zzz;
-    let ans=Math.abs(zz-zzz);
-}
+
+
+
+
+
+
+function download(content, fileName, contentType) {
+        var a = document.createElement("a");
+        var file = new Blob([content], {type: contentType});
+        a.href = URL.createObjectURL(file);
+        a.download = fileName;
+        a.click();
+    }
+
+
+
+
 
 
 
@@ -184,7 +190,7 @@ function angle(keypoints, a, b, c) {
 /**
  * Draws a pose skeleton by looking up all adjacent keypoints/joints
  */
- function drawSkeleton(keypoints, minConfidence, ctx, scale = 1) {
+ function drawSkeleton(keypoints, minConfidence, ctx, scale = 1, color) {
   const adjacentKeyPoints =
       posenet.getAdjacentKeyPoints(keypoints, minConfidence);
 
@@ -198,7 +204,7 @@ function angle(keypoints, a, b, c) {
 /**
  * Draw pose keypoints onto a canvas
  */
- function drawKeypoints(keypoints, minConfidence, ctx, scale = 1) {
+ function drawKeypoints(keypoints, minConfidence, ctx, scale = 1, color='aqua') {
   for (let i = 0; i < keypoints.length; i++) {
     const keypoint = keypoints[i];
 
@@ -211,6 +217,26 @@ function angle(keypoints, a, b, c) {
   }
 }
 
+
+function angle(keypoints, a, b, c) {
+    var keypoint = keypoints[a];
+    let {y1, x1} = keypoint.position;
+    keypoint = keypoints[b];
+    let {y2, x2} = keypoint.position;
+    keypoint = keypoints[c];
+    let {y3, x3} = keypoint.position;
+    let xx=0;
+    if(y1===y2) xx=Infinity;
+    else xx=((x1-x2)/(y1-y2));
+    let yy=0;
+    if(y3===y2) yy=Infinity;
+    else yy=((x3-x2)/(y3-y2));
+    let zz=Math.atan(xx)*180/(Math.PI);
+    if(zz<=0) zz=180+zz;
+    let zzz=Math.atan(yy)*180/(Math.PI);
+    if(zzz<=0) zzz=180+zzz;
+    let ans=Math.abs(zz-zzz);
+}
 /**
  * Draw the bounding box of a pose. For example, for a whole person standing
  * in an image, the bounding box will begin at the nose and extend to one of
