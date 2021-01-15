@@ -1,6 +1,6 @@
 # Browsers
 
-This is a Django Repository to create a website for interactive realtime pose detection
+This is a Django Repository to create a website for interactive realtime pose detection to build a multiplayer game
 
 **Install [Python](https://www.python.org/downloads/)**
 
